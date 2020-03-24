@@ -9,7 +9,8 @@ import java.util.Scanner;
 public class CLI implements Runnable {
     private boolean running;
     private Scanner userInput = new Scanner(System.in);
-    private Task root;
+    private final Task root = new Task("TaskTree\nType \"/h\" for help.");
+    private Task current = root;
 
     public static void main(String[] args) {
         new CLI().run();
@@ -17,40 +18,65 @@ public class CLI implements Runnable {
 
     @Override
     public void run() {
-        dummy();
         this.running = true;
         while (running) {
-            System.out.print("\n> ");
+            printCurrentTask();
+            System.out.print("> ");
             String input = userInput.nextLine();
             switch (input) {
-                case "show":
-                    printTask(root);
+                case "root": {
+                    current = root;
                     break;
+                }
 
-                case "quit":
+                case "sub": {
+                    Task task = new Task("New task");
+                    current.addSubTask(task);
+                    current = task;
+                    break;
+                }
+
+                case "quit": {
                     running = false;
                     break;
+                }
 
-                default:
-                    System.out.println("Invalid Command");
+                case "z": {
+                    String text = current.getText();
+                    int lastNewLine = text.lastIndexOf("\n");
+                    if (lastNewLine == -1) {
+                        current.setText("");
+                    } else {
+                        current.setText(text.substring(0, lastNewLine));
+                    }
                     break;
+                }
+
+                default: {
+                    String text = current.getText();
+                    if (text.length() > 0) {
+                        text += "\n" + input;
+                    } else {
+                        text += input;
+                    }
+                    current.setText(text);
+                    break;
+                }
+
             }
         }
     }
 
-    private void dummy() {
-        root = new Task("TaskTree\nWelcome to TaskTree!");
-        root.addSubTask(new Task("Chores"));
-        root.addSubTask(new Task("Shopping"));
-        root.addSubTask(new Task("Ideas"));
-    }
-
-    private void printTask(Task task) {
-        System.out.println(task.getText() + "\n");
-        Iterator<Task> subTaskIterator = task.getSubTaskIterator();
+    private void printCurrentTask() {
+        for (int i = 0; i < 50; i++) {
+            System.out.println();
+        }
+        System.out.println("---------------------------------");
+        System.out.println(current.getText());
+        Iterator<Task> subTaskIterator = current.getSubTaskIterator();
         while (subTaskIterator.hasNext()) {
             Task subTask = subTaskIterator.next();
-            System.out.println("¤ " + subTask.getFirstLine());
+            System.out.println("* " + subTask.getText());
         }
     }
 }
